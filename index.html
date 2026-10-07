@@ -44,6 +44,63 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* Schermata Login */
+    #authContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg-body);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .auth-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .auth-subtitle {
+      font-size: 13px;
+      color: var(--text-sub);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .auth-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    .auth-toggle span {
+      color: var(--accent-blue);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    #appContent {
+      display: none;
+    }
+
     header {
       position: sticky;
       top: 0;
@@ -362,9 +419,12 @@
       text-align: center;
     }
 
-    input[type="date"].form-control {
+    input[type="date"].form-control,
+    input[type="email"].form-control,
+    input[type="password"].form-control {
       display: block;
       min-height: 42px;
+      text-align: left;
     }
 
     .checkbox-grid {
@@ -413,160 +473,228 @@
 </head>
 <body>
 
-  <header>
-    <h1>Turnazione</h1>
-    <div class="header-actions">
-      <button class="btn-icon-header" onclick="syncWithCloud()" title="Sincronizza">↻</button>
-      <button class="btn-today-header" onclick="scrollToTodayManually()">OGGI</button>
-      <button class="btn-add-header" onclick="openModal()">＋ Giorno</button>
-    </div>
-  </header>
+  <!-- Schermata di Autenticazione -->
+  <div id="authContainer">
+    <div class="auth-card">
+      <div class="auth-title" id="authTitle">Accedi</div>
+      <div class="auth-subtitle" id="authSubtitle">Inserisci le tue credenziali per accedere ai tuoi turni</div>
 
-  <div id="toast">Sincronizzazione...</div>
-
-  <div class="agenda-container" id="agenda"></div>
-
-  <div class="summary-bar" onclick="openSummary()">
-    <span class="summary-bar-title" id="summaryBarTitle">RESOCONTO · CARICAMENTO... ›</span>
-  </div>
-
-  <div class="modal-overlay" id="modalAdd">
-    <div class="modal-header">
-      <div class="modal-title">Aggiungi Turno</div>
-      <button class="btn-close" onclick="closeModal()">✕</button>
-    </div>
-
-    <div class="form-group">
-      <label>Data</label>
-      <input type="date" id="inputDate" class="form-control">
-    </div>
-
-    <div class="form-group">
-      <label>Turno</label>
-      <select id="selectShift" class="form-control">
-        <option value="Notte (01:00 - 07:00)">Notte (01:00 - 07:00)</option>
-        <option value="Mattina (07:00 - 13:00)">Mattina (07:00 - 13:00)</option>
-        <option value="Pomeriggio (13:00 - 19:00)">Pomeriggio (13:00 - 19:00)</option>
-        <option value="Sera (19:00 - 01:00)">Sera (19:00 - 01:00)</option>
-        <option value="Riposo">Riposo</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>Permesso / Ore</label>
-      <select id="selectPermesso" class="form-control">
-        <option value="">Nessuno</option>
-        <option value="1 ora">1 ora</option>
-        <option value="2 ore">2 ore</option>
-        <option value="3 ore">3 ore</option>
-        <option value="4 ore">4 ore</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>Straordinario / Ore</label>
-      <select id="selectStraordinario" class="form-control">
-        <option value="">Nessuno</option>
-        <option value="1 ora">1 ora</option>
-        <option value="2 ore">2 ore</option>
-        <option value="3 ore">3 ore</option>
-        <option value="4 ore">4 ore</option>
-      </select>
-    </div>
-
-    <div class="checkbox-grid">
-      <label class="checkbox-item"><input type="checkbox" id="chkCambio"> Cambio turno</label>
-      <label class="checkbox-item"><input type="checkbox" id="chkCambioPagato"> Cambio pagato</label>
-      <label class="checkbox-item"><input type="checkbox" id="chkFerie"> Ferie</label>
-      <label class="checkbox-item"><input type="checkbox" id="chkMalattia"> Malattia</label>
-      <label class="checkbox-item"><input type="checkbox" id="chkDoppio"> Doppio turno</label>
-      <label class="checkbox-item"><input type="checkbox" id="chkCigo"> CIGO</label>
-      <label class="checkbox-item"><input type="checkbox" id="chkChiusura"> Chiusura terminal</label>
-      <label class="checkbox-item"><input type="checkbox" id="chkAltro"> Altro</label>
-    </div>
-
-    <button class="btn-primary" onclick="saveShiftContinuous()">SALVA</button>
-  </div>
-
-  <div class="summary-page" id="summaryPage">
-    <div class="modal-header">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <button class="btn-close" onclick="changeSummaryMonth(-1)">‹</button>
-        <div class="modal-title" id="summaryMonthLabel">MESE</div>
-        <button class="btn-close" onclick="changeSummaryMonth(1)">›</button>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="authEmail" class="form-control" placeholder="nome@email.com">
       </div>
-      <button class="btn-close" onclick="closeSummary()">✕</button>
-    </div>
 
-    <div class="summary-grid" id="summaryGrid"></div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="authPassword" class="form-control" placeholder="••••••••">
+      </div>
+
+      <button class="btn-primary" id="btnAuthSubmit" onclick="handleAuth()">ACCEDI</button>
+
+      <div class="auth-toggle">
+        <span id="authToggleText">Non hai un account? Registrati</span>
+      </div>
+    </div>
   </div>
 
-<script>
-    const BIN_ID = '6ac51e21ac6210605a19b157';
-    const MASTER_KEY = '$2a$10$mdcCYDxaDgUqQi5RhuFhXeoE4LgdhCH5etDoVuJUR7F5033qNa88K';
+  <!-- Contenuto Principale App -->
+  <div id="appContent">
+    <header>
+      <h1>Turnazione</h1>
+      <div class="header-actions">
+        <button class="btn-icon-header" onclick="handleLogout()" title="Esci">🚪</button>
+        <button class="btn-today-header" onclick="scrollToTodayManually()">OGGI</button>
+        <button class="btn-add-header" onclick="openModal()">＋ Giorno</button>
+      </div>
+    </header>
 
-    const STORAGE_KEY = 'miei_turni_v4_data';
+    <div id="toast">Sincronizzazione...</div>
+
+    <div class="agenda-container" id="agenda"></div>
+
+    <div class="summary-bar" onclick="openSummary()">
+      <span class="summary-bar-title" id="summaryBarTitle">RESOCONTO · CARICAMENTO... ›</span>
+    </div>
+
+    <div class="modal-overlay" id="modalAdd">
+      <div class="modal-header">
+        <div class="modal-title">Aggiungi Turno</div>
+        <button class="btn-close" onclick="closeModal()">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="inputDate" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>Turno</label>
+        <select id="selectShift" class="form-control">
+          <option value="Notte (01:00 - 07:00)">Notte (01:00 - 07:00)</option>
+          <option value="Mattina (07:00 - 13:00)">Mattina (07:00 - 13:00)</option>
+          <option value="Pomeriggio (13:00 - 19:00)">Pomeriggio (13:00 - 19:00)</option>
+          <option value="Sera (19:00 - 01:00)">Sera (19:00 - 01:00)</option>
+          <option value="Riposo">Riposo</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Permesso / Ore</label>
+        <select id="selectPermesso" class="form-control">
+          <option value="">Nessuno</option>
+          <option value="1 ora">1 ora</option>
+          <option value="2 ore">2 ore</option>
+          <option value="3 ore">3 ore</option>
+          <option value="4 ore">4 ore</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Straordinario / Ore</label>
+        <select id="selectStraordinario" class="form-control">
+          <option value="">Nessuno</option>
+          <option value="1 ora">1 ora</option>
+          <option value="2 ore">2 ore</option>
+          <option value="3 ore">3 ore</option>
+          <option value="4 ore">4 ore</option>
+        </select>
+      </div>
+
+      <div class="checkbox-grid">
+        <label class="checkbox-item"><input type="checkbox" id="chkCambio"> Cambio turno</label>
+        <label class="checkbox-item"><input type="checkbox" id="chkCambioPagato"> Cambio pagato</label>
+        <label class="checkbox-item"><input type="checkbox" id="chkFerie"> Ferie</label>
+        <label class="checkbox-item"><input type="checkbox" id="chkMalattia"> Malattia</label>
+        <label class="checkbox-item"><input type="checkbox" id="chkDoppio"> Doppio turno</label>
+        <label class="checkbox-item"><input type="checkbox" id="chkCigo"> CIGO</label>
+        <label class="checkbox-item"><input type="checkbox" id="chkChiusura"> Chiusura terminal</label>
+        <label class="checkbox-item"><input type="checkbox" id="chkAltro"> Altro</label>
+      </div>
+
+      <button class="btn-primary" onclick="saveShiftContinuous()">SALVA</button>
+    </div>
+
+    <div class="summary-page" id="summaryPage">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button class="btn-close" onclick="changeSummaryMonth(-1)">‹</button>
+          <div class="modal-title" id="summaryMonthLabel">MESE</div>
+          <button class="btn-close" onclick="changeSummaryMonth(1)">›</button>
+        </div>
+        <button class="btn-close" onclick="closeSummary()">✕</button>
+      </div>
+
+      <div class="summary-grid" id="summaryGrid"></div>
+    </div>
+  </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      createUserWithEmailAndPassword, 
+      onAuthStateChanged, 
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      getDocs, 
+      doc, 
+      setDoc, 
+      deleteDoc 
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBX-hebgvI1YmsQGF4O1T9oGvYOGRIf_ic",
+      authDomain: "app-turni-621c8.firebaseapp.com",
+      projectId: "app-turni-621c8",
+      storageBucket: "app-turni-621c8.firebasestorage.app",
+      messagingSenderId: "695141578819",
+      appId: "1:695141578819:web:ad39f5b77cac3b406c7cf6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
     let shiftsData = [];
     let currentSummaryDate = new Date();
     let scrollObserver = null;
     let currentSortedDates = [];
     let isInitialLoad = true;
+    let isLoginMode = true;
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      document.getElementById('inputDate').valueAsDate = new Date();
-      await fetchFromCloud();
-      renderAgenda();
-      
-      // Lo scroll verso oggi avviene solo al primissimo caricamento della pagina
-      if (isInitialLoad) {
-        scrollToToday(currentSortedDates);
-        isInitialLoad = false;
+    // Gestione Auth State
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('authContainer').style.display = 'none';
+        document.getElementById('appContent').style.display = 'block';
+        document.getElementById('inputDate').valueAsDate = new Date();
+        await fetchFromCloud();
+        renderAgenda();
+        if (isInitialLoad) {
+          scrollToToday(currentSortedDates);
+          isInitialLoad = false;
+        }
+        setupSwipeGesture();
+      } else {
+        currentUser = null;
+        document.getElementById('authContainer').style.display = 'flex';
+        document.getElementById('appContent').style.display = 'none';
       }
-      setupSwipeGesture();
     });
 
-    async function fetchFromCloud() {
-      if (!BIN_ID || BIN_ID.includes('INSERISCI')) {
-        const local = localStorage.getItem(STORAGE_KEY);
-        if (local) shiftsData = JSON.parse(local);
-        return;
-      }
+    // Toggle Login / Registrazione
+    document.getElementById('authToggleText').addEventListener('click', () => {
+      isLoginMode = !isLoginMode;
+      document.getElementById('authTitle').innerText = isLoginMode ? 'Accedi' : 'Registrati';
+      document.getElementById('authSubtitle').innerText = isLoginMode 
+        ? 'Inserisci le tue credenziali per accedere ai tuoi turni' 
+        : 'Crea un nuovo account per gestire i tuoi turni';
+      document.getElementById('btnAuthSubmit').innerText = isLoginMode ? 'ACCEDI' : 'REGISTRATI';
+      document.getElementById('authToggleText').innerText = isLoginMode 
+        ? 'Non hai un account? Registrati' 
+        : 'Hai già un account? Accedi';
+    });
+
+    window.handleAuth = async function() {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+
+      if (!email || !password) return alert('Inserisci email e password');
+
       try {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-          headers: { 'X-Master-Key': MASTER_KEY }
-        });
-        if (res.ok) {
-          const json = await res.json();
-          shiftsData = Array.isArray(json.record) ? json.record : [];
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(shiftsData));
+        if (isLoginMode) {
+          await signInWithEmailAndPassword(auth, email, password);
+        } else {
+          await createUserWithEmailAndPassword(auth, email, password);
         }
+      } catch (e) {
+        alert('Errore: ' + e.message);
+      }
+    };
+
+    window.handleLogout = async function() {
+      await signOut(auth);
+    };
+
+    async function fetchFromCloud() {
+      if (!currentUser) return;
+      try {
+        showToast('Caricamento...');
+        const querySnapshot = await getDocs(collection(db, "users", currentUser.uid, "shifts"));
+        shiftsData = [];
+        querySnapshot.forEach((doc) => {
+          shiftsData.push(doc.data());
+        });
+        showToast('Sincronizzato ✓');
       } catch (e) {
         console.error('Errore Cloud:', e);
-        const local = localStorage.getItem(STORAGE_KEY);
-        if (local) shiftsData = JSON.parse(local);
-      }
-    }
-
-    async function syncWithCloud() {
-      if (!BIN_ID || BIN_ID.includes('INSERISCI')) return alert('Sostituisci BIN_ID e MASTER_KEY nel codice!');
-      showToast('Sincronizzazione...');
-      try {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': MASTER_KEY
-          },
-          body: JSON.stringify(shiftsData)
-        });
-        if (res.ok) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(shiftsData));
-          showToast('Sincronizzato ✓');
-        } else {
-          alert('Errore sincronizzazione: Controlla le chiavi');
-        }
-      } catch (e) {
-        alert('Errore di connessione');
+        alert('Errore nel caricamento dei dati');
       }
     }
 
@@ -577,18 +705,19 @@
       setTimeout(() => { toast.style.display = 'none'; }, 2000);
     }
 
-    function openModal() { document.getElementById('modalAdd').classList.add('active'); }
-    function closeModal() { document.getElementById('modalAdd').classList.remove('active'); }
+    window.openModal = function() { document.getElementById('modalAdd').classList.add('active'); };
+    window.closeModal = function() { document.getElementById('modalAdd').classList.remove('active'); };
 
-    async function saveShiftContinuous() {
+    window.saveShiftContinuous = async function() {
       const dateInput = document.getElementById('inputDate');
       const dateVal = dateInput.value;
       if (!dateVal) return alert('Seleziona una data valida');
 
       const currentScroll = window.scrollY;
+      const shiftId = 'shift_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
 
       const newShift = {
-        id: 'shift_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        id: shiftId,
         date: dateVal,
         shift: document.getElementById('selectShift').value,
         permesso: document.getElementById('selectPermesso').value,
@@ -608,20 +737,23 @@
 
       window.scrollTo({ top: currentScroll, behavior: 'instant' });
 
-      // Avanza automaticamente la data al giorno dopo per l'inserimento continuo
       const nextDate = new Date(dateVal + 'T00:00:00');
       nextDate.setDate(nextDate.getDate() + 1);
       dateInput.valueAsDate = nextDate;
 
-      // Resetta i checkbox opzionali
       document.getElementById('selectPermesso').value = "";
       document.getElementById('selectStraordinario').value = "";
       document.querySelectorAll('#modalAdd input[type="checkbox"]').forEach(chk => chk.checked = false);
 
-      await syncWithCloud();
-    }
+      try {
+        await setDoc(doc(db, "users", currentUser.uid, "shifts", shiftId), newShift);
+        showToast('Salvato ✓');
+      } catch (e) {
+        alert('Errore durante il salvataggio');
+      }
+    };
 
-    function handleDeleteClick(btn, id, event) {
+    window.handleDeleteClick = function(btn, id, event) {
       if (event) event.stopPropagation();
 
       if (btn.dataset.confirming === 'true') {
@@ -654,7 +786,7 @@
           document.addEventListener('touchstart', cancelOnOutsideClick, { once: true });
         }, 10);
       }
-    }
+    };
 
     function resetDeleteBtn(btn) {
       if (btn && document.body.contains(btn)) {
@@ -668,16 +800,17 @@
     }
 
     async function deleteShift(id) {
-      // Salva la posizione corrente dello scroll prima di rimuovere il turno
       const currentScroll = window.scrollY;
-
       shiftsData = shiftsData.filter(s => s.id !== id);
       renderAgenda();
-
-      // Ripristina all'istante la posizione dello scroll per evitare balzi
       window.scrollTo({ top: currentScroll, behavior: 'instant' });
 
-      await syncWithCloud();
+      try {
+        await deleteDoc(doc(db, "users", currentUser.uid, "shifts", id));
+        showToast('Eliminato ✓');
+      } catch (e) {
+        alert('Errore durante l\'eliminazione');
+      }
     }
 
     function getTodayLocalDateStr() {
@@ -758,7 +891,7 @@
       }
     }
 
-    function scrollToTodayManually() {
+    window.scrollToTodayManually = function() {
       if (currentSortedDates.length === 0) return;
       const todayStr = getTodayLocalDateStr();
       let targetDate = currentSortedDates.find(d => d >= todayStr) || currentSortedDates[currentSortedDates.length - 1];
@@ -769,7 +902,7 @@
           targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }
-    }
+    };
 
     function setupScrollObserver() {
       const options = { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 };
@@ -840,14 +973,14 @@
       document.getElementById('summaryBarTitle').innerText = `RESOCONTO · ${monthName} ›`;
     }
 
-    function openSummary() { renderSummaryPage(); document.getElementById('summaryPage').classList.add('active'); }
-    function closeSummary() { document.getElementById('summaryPage').classList.remove('active'); }
+    window.openSummary = function() { renderSummaryPage(); document.getElementById('summaryPage').classList.add('active'); };
+    window.closeSummary = function() { document.getElementById('summaryPage').classList.remove('active'); };
 
-    function changeSummaryMonth(delta) {
+    window.changeSummaryMonth = function(delta) {
       currentSummaryDate.setMonth(currentSummaryDate.getMonth() + delta);
       updateSummaryBar();
       renderSummaryPage();
-    }
+    };
 
     function renderSummaryPage() {
       const year = currentSummaryDate.getFullYear();
