@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Turnazione</title>
+
+  <!-- Icona per la schermata Home di iOS (iPhone / iPad) -->
+  <link rel="apple-touch-icon" href="icon-180.png">
+
+  <!-- Configurazione per installazione PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Turnazione">
+
+  <style>
+    :root {
+      --bg-body: #0f172a;
+      --bg-card: #1e293b;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --accent-blue: #007aff;
+      --accent-green: #10b981;
+      --accent-orange: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-purple: #a855f7;
+      --accent-purple-dark: #7e22ce;
+      --accent-gray: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      padding-bottom: 90px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 800;
+      margin: 0;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-icon-header {
+      background: var(--bg-body);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .btn-today-header {
+      background: rgba(0, 122, 255, 0.15);
+      color: var(--accent-blue);
+      border: none;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+    }
+
+    .btn-add-header {
+      background: var(--accent-blue);
+      color: #ffffff;
+      border: none;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+    }
+
+    .btn-icon-header:active,
+    .btn-today-header:active,
+    .btn-add-header:active {
+      opacity: 0.8;
+      transform: scale(0.96);
+    }
+
+    .agenda-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .month-header {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 24px 0 12px 4px;
+    }
+
+    .day-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .day-card.today-card {
+      border: 2px solid var(--accent-blue);
+      box-shadow: 0 0 16px rgba(0, 122, 255, 0.2);
+    }
+
+    .day-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .today-badge {
+      background: var(--accent-blue);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .shifts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .shift-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .shift-row:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    .shift-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .shift-badge-color {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .shift-time {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .shift-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+      margin-left: 18px;
+    }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+
+    .tag-cambio { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+    .tag-cambio-pagato { background: rgba(126, 34, 206, 0.25); color: #c084fc; }
+    .tag-ferie, .tag-malattia { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+    .tag-permesso { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+    .tag-straordinario { background: rgba(245, 158, 11, 0.15); color: var(--accent-orange); }
+    .tag-doppio { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+    .tag-cigo { background: rgba(0, 122, 255, 0.15); color: var(--accent-blue); }
+    .tag-chiusura { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); }
+    .tag-altro { background: rgba(100, 116, 139, 0.2); color: var(--text-sub); }
+
+    .btn-delete-shift {
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px;
+      transition: all 0.2s ease;
+      line-height: 1;
+    }
+
+    .summary-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-color);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 90;
+      cursor: pointer;
+    }
+
+    .summary-bar-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent-blue);
+      letter-spacing: 0.5px;
+    }
+
+    .modal-overlay, .summary-page {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg-body);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .modal-overlay.active, .summary-page.active {
+      display: flex;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .btn-close {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .summary-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .summary-card span:first-child {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .summary-card .num {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      max-width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      -webkit-appearance: none;
+      appearance: none;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    input[type="date"].form-control {
+      display: block;
+      min-height: 42px;
+    }
+
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .btn-primary {
+      background: var(--accent-blue);
+      color: #fff;
+      border: none;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 15px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+
+    #toast {
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent-blue);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      display: none;
+      z-index: 300;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Turnazione</h1>
+    <div class="header-actions">
+      <button class="btn-icon-header" onclick="syncWithCloud()" title="Sincronizza">↻</button>
+      <button class="btn-today-header" onclick="scrollToTodayManually()">OGGI</button>
+      <button class="btn-add-header" onclick="openModal()">＋ Giorno</button>
+    </div>
+  </header>
+
+  <div id="toast">Sincronizzazione...</div>
+
+  <div class="agenda-container" id="agenda"></div>
+
+  <div class="summary-bar" onclick="openSummary()">
+    <span class="summary-bar-title" id="summaryBarTitle">RESOCONTO · CARICAMENTO... ›</span>
+  </div>
+
+  <div class="modal-overlay" id="modalAdd">
+    <div class="modal-header">
+      <div class="modal-title">Aggiungi Turno</div>
+      <button class="btn-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label>Data</label>
+      <input type="date" id="inputDate" class="form-control">
+    </div>
+
+    <div class="form-group">
+      <label>Turno</label>
+      <select id="selectShift" class="form-control">
+        <option value="Notte (01:00 - 07:00)">Notte (01:00 - 07:00)</option>
+        <option value="Mattina (07:00 - 13:00)">Mattina (07:00 - 13:00)</option>
+        <option value="Pomeriggio (13:00 - 19:00)">Pomeriggio (13:00 - 19:00)</option>
+        <option value="Sera (19:00 - 01:00)">Sera (19:00 - 01:00)</option>
+        <option value="Riposo">Riposo</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Permesso / Ore</label>
+      <select id="selectPermesso" class="form-control">
+        <option value="">Nessuno</option>
+        <option value="1 ora">1 ora</option>
+        <option value="2 ore">2 ore</option>
+        <option value="3 ore">3 ore</option>
+        <option value="4 ore">4 ore</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Straordinario / Ore</label>
+      <select id="selectStraordinario" class="form-control">
+        <option value="">Nessuno</option>
+        <option value="1 ora">1 ora</option>
+        <option value="2 ore">2 ore</option>
+        <option value="3 ore">3 ore</option>
+        <option value="4 ore">4 ore</option>
+      </select>
+    </div>
+
+    <div class="checkbox-grid">
+      <label class="checkbox-item"><input type="checkbox" id="chkCambio"> Cambio turno</label>
+      <label class="checkbox-item"><input type="checkbox" id="chkCambioPagato"> Cambio pagato</label>
+      <label class="checkbox-item"><input type="checkbox" id="chkFerie"> Ferie</label>
+      <label class="checkbox-item"><input type="checkbox" id="chkMalattia"> Malattia</label>
+      <label class="checkbox-item"><input type="checkbox" id="chkDoppio"> Doppio turno</label>
+      <label class="checkbox-item"><input type="checkbox" id="chkCigo"> CIGO</label>
+      <label class="checkbox-item"><input type="checkbox" id="chkChiusura"> Chiusura terminal</label>
+      <label class="checkbox-item"><input type="checkbox" id="chkAltro"> Altro</label>
+    </div>
+
+    <button class="btn-primary" onclick="saveShiftContinuous()">SALVA</button>
+  </div>
+
+  <div class="summary-page" id="summaryPage">
+    <div class="modal-header">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="btn-close" onclick="changeSummaryMonth(-1)">‹</button>
+        <div class="modal-title" id="summaryMonthLabel">MESE</div>
+        <button class="btn-close" onclick="changeSummaryMonth(1)">›</button>
+      </div>
+      <button class="btn-close" onclick="closeSummary()">✕</button>
+    </div>
+
+    <div class="summary-grid" id="summaryGrid"></div>
+  </div>
+
+<script>
+    const BIN_ID = '6ac51e21ac6210605a19b157';
+    const MASTER_KEY = '$2a$10$mdcCYDxaDgUqQi5RhuFhXeoE4LgdhCH5etDoVuJUR7F5033qNa88K';
+
+    const STORAGE_KEY = 'miei_turni_v4_data';
+    let shiftsData = [];
+    let currentSummaryDate = new Date();
+    let scrollObserver = null;
+    let currentSortedDates = [];
+    let isInitialLoad = true;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('inputDate').valueAsDate = new Date();
+      await fetchFromCloud();
+      renderAgenda();
+      
+      // Lo scroll verso oggi avviene solo al primissimo caricamento della pagina
+      if (isInitialLoad) {
+        scrollToToday(currentSortedDates);
+        isInitialLoad = false;
+      }
+      setupSwipeGesture();
+    });
+
+    async function fetchFromCloud() {
+      if (!BIN_ID || BIN_ID.includes('INSERISCI')) {
+        const local = localStorage.getItem(STORAGE_KEY);
+        if (local) shiftsData = JSON.parse(local);
+        return;
+      }
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+          headers: { 'X-Master-Key': MASTER_KEY }
+        });
+        if (res.ok) {
+          const json = await res.json();
+          shiftsData = Array.isArray(json.record) ? json.record : [];
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(shiftsData));
+        }
+      } catch (e) {
+        console.error('Errore Cloud:', e);
+        const local = localStorage.getItem(STORAGE_KEY);
+        if (local) shiftsData = JSON.parse(local);
+      }
+    }
+
+    async function syncWithCloud() {
+      if (!BIN_ID || BIN_ID.includes('INSERISCI')) return alert('Sostituisci BIN_ID e MASTER_KEY nel codice!');
+      showToast('Sincronizzazione...');
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': MASTER_KEY
+          },
+          body: JSON.stringify(shiftsData)
+        });
+        if (res.ok) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(shiftsData));
+          showToast('Sincronizzato ✓');
+        } else {
+          alert('Errore sincronizzazione: Controlla le chiavi');
+        }
+      } catch (e) {
+        alert('Errore di connessione');
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+
+    function openModal() { document.getElementById('modalAdd').classList.add('active'); }
+    function closeModal() { document.getElementById('modalAdd').classList.remove('active'); }
+
+    async function saveShiftContinuous() {
+      const dateInput = document.getElementById('inputDate');
+      const dateVal = dateInput.value;
+      if (!dateVal) return alert('Seleziona una data valida');
+
+      const currentScroll = window.scrollY;
+
+      const newShift = {
+        id: 'shift_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        date: dateVal,
+        shift: document.getElementById('selectShift').value,
+        permesso: document.getElementById('selectPermesso').value,
+        straordinario: document.getElementById('selectStraordinario').value,
+        cambio: document.getElementById('chkCambio').checked,
+        cambioPagato: document.getElementById('chkCambioPagato').checked,
+        ferie: document.getElementById('chkFerie').checked,
+        malattia: document.getElementById('chkMalattia').checked,
+        doppio: document.getElementById('chkDoppio').checked,
+        cigo: document.getElementById('chkCigo').checked,
+        chiusura: document.getElementById('chkChiusura').checked,
+        altro: document.getElementById('chkAltro').checked
+      };
+
+      shiftsData.push(newShift);
+      renderAgenda();
+
+      window.scrollTo({ top: currentScroll, behavior: 'instant' });
+
+      // Avanza automaticamente la data al giorno dopo per l'inserimento continuo
+      const nextDate = new Date(dateVal + 'T00:00:00');
+      nextDate.setDate(nextDate.getDate() + 1);
+      dateInput.valueAsDate = nextDate;
+
+      // Resetta i checkbox opzionali
+      document.getElementById('selectPermesso').value = "";
+      document.getElementById('selectStraordinario').value = "";
+      document.querySelectorAll('#modalAdd input[type="checkbox"]').forEach(chk => chk.checked = false);
+
+      await syncWithCloud();
+    }
+
+    function handleDeleteClick(btn, id, event) {
+      if (event) event.stopPropagation();
+
+      if (btn.dataset.confirming === 'true') {
+        deleteShift(id);
+      } else {
+        document.querySelectorAll('.btn-delete-shift[data-confirming="true"]').forEach(resetDeleteBtn);
+
+        btn.dataset.confirming = 'true';
+        btn.innerText = 'Elimina?';
+        btn.style.background = 'var(--accent-red)';
+        btn.style.color = '#ffffff';
+        btn.style.padding = '4px 8px';
+        btn.style.borderRadius = '6px';
+        btn.style.fontSize = '12px';
+        btn.style.fontWeight = 'bold';
+
+        const timerId = setTimeout(() => { resetDeleteBtn(btn); }, 3000);
+        btn.dataset.timerId = timerId;
+
+        const cancelOnOutsideClick = (e) => {
+          if (!btn.contains(e.target)) {
+            resetDeleteBtn(btn);
+            document.removeEventListener('click', cancelOnOutsideClick);
+            document.removeEventListener('touchstart', cancelOnOutsideClick);
+          }
+        };
+
+        setTimeout(() => {
+          document.addEventListener('click', cancelOnOutsideClick, { once: true });
+          document.addEventListener('touchstart', cancelOnOutsideClick, { once: true });
+        }, 10);
+      }
+    }
+
+    function resetDeleteBtn(btn) {
+      if (btn && document.body.contains(btn)) {
+        if (btn.dataset.timerId) clearTimeout(parseInt(btn.dataset.timerId));
+        btn.dataset.confirming = 'false';
+        btn.innerText = '✕';
+        btn.style.background = 'none';
+        btn.style.color = 'var(--text-sub)';
+        btn.style.padding = '0';
+      }
+    }
+
+    async function deleteShift(id) {
+      // Salva la posizione corrente dello scroll prima di rimuovere il turno
+      const currentScroll = window.scrollY;
+
+      shiftsData = shiftsData.filter(s => s.id !== id);
+      renderAgenda();
+
+      // Ripristina all'istante la posizione dello scroll per evitare balzi
+      window.scrollTo({ top: currentScroll, behavior: 'instant' });
+
+      await syncWithCloud();
+    }
+
+    function getTodayLocalDateStr() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function renderAgenda() {
+      const container = document.getElementById('agenda');
+      container.innerHTML = '';
+
+      if (scrollObserver) { scrollObserver.disconnect(); }
+
+      if (shiftsData.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-sub);">Nessun turno inserito. Premi "+ Giorno" per iniziare.</div>';
+        updateSummaryBar();
+        return;
+      }
+
+      const groupedByDate = {};
+      shiftsData.forEach(shift => {
+        if (!groupedByDate[shift.date]) groupedByDate[shift.date] = [];
+        groupedByDate[shift.date].push(shift);
+      });
+
+      currentSortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(a) - new Date(b));
+      let currentMonthKey = '';
+      const todayStr = getTodayLocalDateStr();
+
+      currentSortedDates.forEach(dateStr => {
+        const shiftsForDay = groupedByDate[dateStr];
+        const d = new Date(dateStr + 'T00:00:00');
+        const monthKey = d.toLocaleString('it-IT', { month: 'long', year: 'numeric' }).toUpperCase();
+
+        if (monthKey !== currentMonthKey) {
+          currentMonthKey = monthKey;
+          const monthDiv = document.createElement('div');
+          monthDiv.className = 'month-header';
+          monthDiv.innerText = currentMonthKey;
+          container.appendChild(monthDiv);
+        }
+
+        const dayCard = document.createElement('div');
+        dayCard.className = 'day-card';
+        dayCard.setAttribute('data-date', dateStr);
+
+        const isToday = (dateStr === todayStr);
+        if (isToday) { dayCard.classList.add('today-card'); }
+
+        const formattedDay = d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+        const todayBadgeHtml = isToday ? `<span class="today-badge">Oggi</span>` : '';
+
+        dayCard.innerHTML = `<div class="day-title">${capitalize(formattedDay)}${todayBadgeHtml}</div><div class="shifts-list"></div>`;
+
+        const shiftsList = dayCard.querySelector('.shifts-list');
+        shiftsForDay.forEach(shift => {
+          shiftsList.appendChild(createShiftRow(shift));
+        });
+
+        container.appendChild(dayCard);
+      });
+
+      setupScrollObserver();
+    }
+
+    function scrollToToday(sortedDates) {
+      const todayStr = getTodayLocalDateStr();
+      let targetDate = sortedDates.find(d => d >= todayStr) || sortedDates[sortedDates.length - 1];
+
+      if (targetDate) {
+        const targetEl = document.querySelector(`.day-card[data-date="${targetDate}"]`);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'instant', block: 'center' });
+        }
+      }
+    }
+
+    function scrollToTodayManually() {
+      if (currentSortedDates.length === 0) return;
+      const todayStr = getTodayLocalDateStr();
+      let targetDate = currentSortedDates.find(d => d >= todayStr) || currentSortedDates[currentSortedDates.length - 1];
+
+      if (targetDate) {
+        const targetEl = document.querySelector(`.day-card[data-date="${targetDate}"]`);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+
+    function setupScrollObserver() {
+      const options = { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 };
+
+      scrollObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const dateStr = entry.target.getAttribute('data-date');
+            if (dateStr) {
+              const d = new Date(dateStr + 'T00:00:00');
+              currentSummaryDate = new Date(d.getFullYear(), d.getMonth(), 1);
+              updateSummaryBar();
+            }
+          }
+        });
+      }, options);
+
+      document.querySelectorAll('.day-card').forEach(card => scrollObserver.observe(card));
+    }
+
+    function createShiftRow(shift) {
+      const row = document.createElement('div');
+      row.className = 'shift-row';
+
+      const displayShift = shift.shift || '';
+      const color = getShiftColor(shift);
+
+      let tagsHtml = '';
+      if (shift.cambio) tagsHtml += `<span class="tag tag-cambio">Cambio turno</span>`;
+      if (shift.cambioPagato) tagsHtml += `<span class="tag tag-cambio-pagato">Cambio pagato</span>`;
+      if (shift.ferie) tagsHtml += `<span class="tag tag-ferie">Ferie</span>`;
+      if (shift.malattia) tagsHtml += `<span class="tag tag-malattia">Malattia</span>`;
+      if (shift.permesso) tagsHtml += `<span class="tag tag-permesso">Permesso ${shift.permesso}</span>`;
+      if (shift.straordinario) tagsHtml += `<span class="tag tag-straordinario">Straordinario ${shift.straordinario}</span>`;
+      if (shift.doppio) tagsHtml += `<span class="tag tag-doppio">Doppio turno</span>`;
+      if (shift.cigo) tagsHtml += `<span class="tag tag-cigo">CIGO</span>`;
+      if (shift.chiusura) tagsHtml += `<span class="tag tag-chiusura">Chiusura terminal</span>`;
+      if (shift.altro) tagsHtml += `<span class="tag tag-altro">Altro</span>`;
+
+      row.innerHTML = `
+        <div>
+          <div class="shift-main">
+            <div class="shift-badge-color" style="background:${color}"></div>
+            <div class="shift-time">${displayShift}</div>
+          </div>
+          <div class="shift-tags">${tagsHtml}</div>
+        </div>
+        <button class="btn-delete-shift" onclick="handleDeleteClick(this, '${shift.id}', event)">✕</button>
+      `;
+      return row;
+    }
+
+    function getShiftColor(shift) {
+      const val = shift.shift || '';
+      if (val === 'Riposo') return 'var(--accent-gray)';
+      if (shift.ferie || shift.malattia) return 'var(--accent-red)';
+      if (shift.cambioPagato) return 'var(--accent-purple-dark)';
+      if (shift.cambio) return 'var(--accent-purple)';
+      if (shift.straordinario) return 'var(--accent-orange)';
+      if (shift.permesso) return 'var(--accent-green)';
+      return 'var(--accent-blue)';
+    }
+
+    function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+
+    function updateSummaryBar() {
+      const monthName = currentSummaryDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' }).toUpperCase();
+      document.getElementById('summaryBarTitle').innerText = `RESOCONTO · ${monthName} ›`;
+    }
+
+    function openSummary() { renderSummaryPage(); document.getElementById('summaryPage').classList.add('active'); }
+    function closeSummary() { document.getElementById('summaryPage').classList.remove('active'); }
+
+    function changeSummaryMonth(delta) {
+      currentSummaryDate.setMonth(currentSummaryDate.getMonth() + delta);
+      updateSummaryBar();
+      renderSummaryPage();
+    }
+
+    function renderSummaryPage() {
+      const year = currentSummaryDate.getFullYear();
+      const month = currentSummaryDate.getMonth();
+
+      const monthName = currentSummaryDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' }).toUpperCase();
+      document.getElementById('summaryMonthLabel').innerText = monthName;
+
+      const monthlyShifts = shiftsData.filter(s => {
+        const d = new Date(s.date + 'T00:00:00');
+        return d.getFullYear() === year && d.getMonth() === month;
+      });
+
+      let turniTotali = 0, riposi = 0, cambi = 0, cambiPagati = 0, ferie = 0, malattia = 0, permessi = 0, straordinari = 0, doppi = 0, cigo = 0, chiusura = 0;
+
+      monthlyShifts.forEach(s => {
+        const shiftVal = (s.shift || '').trim();
+        if (shiftVal === 'Riposo') riposi++; else turniTotali++;
+        if (s.cambio) cambi++;
+        if (s.cambioPagato) cambiPagati++;
+        if (s.ferie) ferie++;
+        if (s.malattia) malattia++;
+        if (s.permesso) permessi++;
+        if (s.straordinario) straordinari++;
+        if (s.doppio) doppi++;
+        if (s.cigo) cigo++;
+        if (s.chiusura) chiusura++;
+      });
+
+      const grid = document.getElementById('summaryGrid');
+      grid.innerHTML = `
+        <div class="summary-card"><span style="color:var(--accent-blue)">Turni</span><span class="num">${turniTotali}</span></div>
+        <div class="summary-card"><span style="color:var(--accent-gray)">Riposi</span><span class="num">${riposi}</span></div>
+        <div class="summary-card"><span style="color:var(--accent-purple)">Cambi Turno</span><span class="num">${cambi}</span></div>
+        <div class="summary-card"><span style="color:var(--accent-purple-dark)">Cambi Pagati</span><span class="num">${cambiPagati}</span></div>
+        <div class="summary-card"><span style="color:var(--accent-red)">Ferie</span><span class="num">${ferie}</span></div>
+        <div class="summary-card"><span style="color:var(--accent-red)">Malattia</span><span class="num">${malattia}</span></div>
+        <div class="summary-card"><span style="color:var(--accent-green)">Permessi</span><span class="num">${permessi}</span></div>
+        <div class="summary-card"><span style="color:var(--accent-orange)">Straordinari</span><span class="num">${straordinari}</span></div>
+        <div class="summary-card"><span style="color:var(--accent-purple)">Doppio Turno</span><span class="num">${doppi}</span></div>
+        <div class="summary-card"><span style="color:var(--accent-blue)">CIGO</span><span class="num">${cigo}</span></div>
+        <div class="summary-card"><span style="color:var(--accent-orange)">Chiusura Terminal</span><span class="num">${chiusura}</span></div>
+      `;
+    }
+
+    function setupSwipeGesture() {
+      const summaryPage = document.getElementById('summaryPage');
+      let touchStartX = 0, touchEndX = 0;
+      summaryPage.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
+      summaryPage.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; handleSwipe(); }, false);
+      function handleSwipe() {
+        const threshold = 50;
+        if (touchEndX < touchStartX - threshold) changeSummaryMonth(1);
+        if (touchEndX > touchStartX + threshold) changeSummaryMonth(-1);
+      }
+    }
+</script>
+</body>
+</html>
